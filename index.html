@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>e-Base Student Enquiry Portal</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f4f7fa;
+      margin: 0;
+      padding: 20px;
+    }
+    h1 {
+      text-align: center;
+      color: #333;
+    }
+    form {
+      background-color: white;
+      max-width: 600px;
+      margin: 0 auto;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+    label {
+      display: block;
+      margin: 10px 0 5px;
+      font-weight: bold;
+    }
+    input, select, textarea {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      font-size: 14px;
+    }
+    button {
+      background-color: #007bff;
+      color: white;
+      border: none;
+      padding: 10px 15px;
+      border-radius: 6px;
+      cursor: pointer;
+      margin-top: 15px;
+    }
+    button:hover {
+      background-color: #0056b3;
+    }
+    .table-container {
+      margin-top: 30px;
+      max-width: 900px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 15px;
+    }
+    th, td {
+      border: 1px solid #ccc;
+      padding: 10px;
+      text-align: left;
+    }
+    th {
+      background-color: #007bff;
+      color: white;
+    }
+    #filter, #downloadBtn {
+      margin-top: 15px;
+      padding: 8px;
+      border-radius: 6px;
+      border: 1px solid #aaa;
+    }
+    .dashboard {
+      background-color: #fff;
+      max-width: 900px;
+      margin: 20px auto;
+      padding: 15px;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+    .dashboard h2 {
+      margin-bottom: 10px;
+      color: #333;
+    }
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 10px;
+    }
+    .stat-box {
+      background-color: #e9f3ff;
+      border-radius: 8px;
+      padding: 10px;
+      text-align: center;
+      font-weight: bold;
+      color: #007bff;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>📘 e-Base Student Enquiry Portal</h1>
+
+  <form id="enquiryForm">
+    <label>Name:</label>
+    <input type="text" id="name" required>
+
+    <label>Phone Number:</label>
+    <input type="tel" id="phone" pattern="[0-9]{10}" required>
+
+    <label>Email:</label>
+    <input type="email" id="email" required>
+
+    <label>Occupation:</label>
+    <select id="occupation" required>
+      <option value="">-- Select --</option>
+      <option>Student</option>
+      <option>Researcher</option>
+      <option>Job Seeker</option>
+      <option>Faculty</option>
+      <option>Entrepreneur</option>
+    </select>
+
+    <label>Comment (Optional):</label>
+    <textarea id="comment" rows="3"></textarea>
+
+    <button type="submit">Submit Enquiry</button>
+  </form>
+
+  <div class="dashboard">
+    <h2>📈 Enquiry Summary</h2>
+    <div class="stats" id="summaryStats"></div>
+  </div>
+
+  <div class="table-container">
+    <h2>📊 Enquiry List</h2>
+    <label>Filter by Occupation:</label>
+    <select id="filter">
+      <option value="All">All</option>
+      <option>Student</option>
+      <option>Researcher</option>
+      <option>Job Seeker</option>
+      <option>Faculty</option>
+      <option>Entrepreneur</option>
+    </select>
+
+    <!-- <button id="downloadBtn">💾 Download to Excel</button> -->
+
+    <table id="enquiryTable">
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Phone</th>
+          <th>Email</th>
+          <th>Occupation</th>
+          <th>Comment</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
+
+  <script>
+    const form = document.getElementById('enquiryForm');
+    const tableBody = document.querySelector('#enquiryTable tbody');
+    const filter = document.getElementById('filter');
+    const summary = document.getElementById('summaryStats');
+    const downloadBtn = document.getElementById('downloadBtn');
+    let enquiries = [];
+
+    form.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const entry = {
+        name: document.getElementById('name').value,
+        phone: document.getElementById('phone').value,
+        email: document.getElementById('email').value,
+        occupation: document.getElementById('occupation').value,
+        comment: document.getElementById('comment').value || '-'
+      };
+      enquiries.push(entry);
+      form.reset();
+      displayData();
+      updateSummary();
+    });
+
+    filter.addEventListener('change', displayData);
+
+    function displayData() {
+      tableBody.innerHTML = '';
+      const filtered = filter.value === 'All'
+        ? enquiries
+        : enquiries.filter(e => e.occupation === filter.value);
+
+      filtered.forEach(e => {
+        const row = `<tr>
+          <td>${e.name}</td>
+          <td>${e.phone}</td>
+          <td>${e.email}</td>
+          <td>${e.occupation}</td>
+          <td>${e.comment}</td>
+        </tr>`;
+        tableBody.innerHTML += row;
+      });
+    }
+
+    function updateSummary() {
+      const counts = {};
+      const types = ["Student", "Researcher", "Job Seeker", "Faculty", "Entrepreneur"];
+      types.forEach(t => counts[t] = enquiries.filter(e => e.occupation === t).length);
+      
+      summary.innerHTML = '';
+      for (const type in counts) {
+        summary.innerHTML += `<div class="stat-box">${type}<br>${counts[type]} candidates</div>`;
+      }
+    }
+
+    downloadBtn.addEventListener('click', () => {
+      if (enquiries.length === 0) {
+        alert("No data to download!");
+        return;
+      }
+      const csv = [
+        ["Name", "Phone", "Email", "Occupation", "Comment"],
+        ...enquiries.map(e => [e.name, e.phone, e.email, e.occupation, e.comment])
+      ].map(row => row.join(",")).join("\n");
+
+      const blob = new Blob([csv], { type: "text/csv" });
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(blob);
+      a.download = "Enquiry_Data.csv";
+      a.click();
+    });
+  </script>
+</body>
+</html>
